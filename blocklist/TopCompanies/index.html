@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Block List</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        h1 { text-align: center; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin-bottom: 10px; }
+        a { text-decoration: none; color: #0066cc; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <h1>Block List</h1>
+    <ul id="blockList"></ul>
+    <script>
+        const companies = [
+            "TVSquared", "Criteo", "Telenor Sverige", "Comcast", "Shopify", "iubenda", "Amplitude", "Snap", "OpenJS Foundation", "Akamai",
+            "Zendesk", "Zeta Global", "easyAd Deutschland GmbH", "Verizon", "GitHub", "Adobe", "Forter", "Magnite", "Quantum Metric", "Stripe",
+            "Braze", "Klaviyo", "AO Kaspersky Lab", "Microsoft", "Sourcepoint", "Verizon Media", "Alibaba", "StackPath", "Teads", "Wingify",
+            "Intercom", "Oracle + Dyn", "Dotmetrics", "TripleLift", "Chartbeat", "LongTail Ad Solutions", "MindGeek", "PubMatic", "Wikimedia Foundation",
+            "mylistforAdguardHome", "Oracle", "Taboola", "unpkg", "Piano Software", "Quantcast", "Automattic", "Twitter", "LY-Corporation", "Tealium",
+            "AIO", "RTB House", "Facebook", "Outbrain", "Traffic Stars", "myallowlistforAdguardHome", "Mixpanel", "Ventail", "Functional Software",
+            "DoubleVerify", "Baidu", "Reddit", "Cloudinary", "Segment.io", "Media.net Advertising", "Smartadserver", "Adform", "HubSpot", "OneSignal",
+            "comScore", "eBay", "Prospect One", "Gemius", "Hotjar", "Didomi", "OneTrust", "LiveRamp", "AT Internet", "Fastly", "Fonticons", "SAP",
+            "Amazon", "Blockthrough", "Integral Ad Science", "Optimizely", "Pinterest", "Index Exchange", "Human Security", "LiveIntent", "Brandmetrics",
+            "New Relic", "ShareThis", "Salesforce.com", "OpenX", "The Trade Desk", "TELENOR", "ID5", "ByteDance", "Yandex", "Cloudflare",
+            "The Nielsen Company", "Google"
+        ];
+
+        const blockList = document.getElementById('blockList');
+        companies.forEach(company => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = `https://yookibooki.github.io/pages/blocklist/TopCompanies/${encodeURIComponent(company)}.txt`;
+            a.textContent = `block ${company}`;
+            li.appendChild(a);
+            blockList.appendChild(li);
+        });
+    </script>
+</body>
+</html>
