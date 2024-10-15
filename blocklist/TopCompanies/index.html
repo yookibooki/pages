@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Block List</title>
+    <title>TopCompanies</title>
     <style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
         h1 { text-align: center; }
@@ -14,21 +14,21 @@
     </style>
 </head>
 <body>
-    <h1>Block List</h1>
+    <h1>Top tracker according to WhoTracks.me</h1>
     <ul id="blockList"></ul>
     <script>
         const companies = [
-            "TVSquared", "Criteo", "Telenor Sverige", "Comcast", "Shopify", "iubenda", "Amplitude", "Snap", "OpenJS Foundation", "Akamai",
-            "Zendesk", "Zeta Global", "easyAd Deutschland GmbH", "Verizon", "GitHub", "Adobe", "Forter", "Magnite", "Quantum Metric", "Stripe",
-            "Braze", "Klaviyo", "AO Kaspersky Lab", "Microsoft", "Sourcepoint", "Verizon Media", "Alibaba", "StackPath", "Teads", "Wingify",
-            "Intercom", "Oracle + Dyn", "Dotmetrics", "TripleLift", "Chartbeat", "LongTail Ad Solutions", "MindGeek", "PubMatic", "Wikimedia Foundation",
-            "mylistforAdguardHome", "Oracle", "Taboola", "unpkg", "Piano Software", "Quantcast", "Automattic", "Twitter", "LY-Corporation", "Tealium",
-            "AIO", "RTB House", "Facebook", "Outbrain", "Traffic Stars", "myallowlistforAdguardHome", "Mixpanel", "Ventail", "Functional Software",
-            "DoubleVerify", "Baidu", "Reddit", "Cloudinary", "Segment.io", "Media.net Advertising", "Smartadserver", "Adform", "HubSpot", "OneSignal",
-            "comScore", "eBay", "Prospect One", "Gemius", "Hotjar", "Didomi", "OneTrust", "LiveRamp", "AT Internet", "Fastly", "Fonticons", "SAP",
-            "Amazon", "Blockthrough", "Integral Ad Science", "Optimizely", "Pinterest", "Index Exchange", "Human Security", "LiveIntent", "Brandmetrics",
-            "New Relic", "ShareThis", "Salesforce.com", "OpenX", "The Trade Desk", "TELENOR", "ID5", "ByteDance", "Yandex", "Cloudflare",
-            "The Nielsen Company", "Google"
+            "Google", "Amazon", "Meta", "Cloudflare", "Microsoft", "OneTrust", "Adobe", "jsdelivr", "X Corp.", "comScore, Inc.",
+            "Akamai Technologies", "Criteo", "Qualtrics", "reddit", "Forter", "Sentry", "Mixpanel", "perimeterx.net", "Taboola", "New Relic",
+            "cloudinary", "Automattic", "ChartBeat", "The Rubicon Project, Limited", "PubMatic, Inc.", "ad-delivery.net", "Verizon", "JS Foundation",
+            "Quantcast International Limited", "Blockthrough", "Hotjar", "Didomi", "Outbrain", "Pinterest", "unpkg.com", "ByteDance Inc",
+            "fontawesome_com", "Index Exchange, Inc.", "Yandex", "Tealium", "Usercentrics", "Kaspersky Lab", "BootstrapCDN", "Traffic Stars",
+            "The Trade Desk", "Nielsen", "Oracle", "Yahoo! Japan", "Integral Ad Science, Inc.", "Optimizely", "Intercom", "RTB House",
+            "Gemius SA", "Wikimedia Foundation", "eBay", "Smart Adserver", "TripleLift, Inc.", "Cxense", "Zeta Global", "ID5 Technology Ltd.",
+            "Sourcepoint", "Piano", "Amplitude", "OneSignal", "OpenX Software Ltd.", "Shopify", "Adform", "Teads", "stripe.com", "JW Player",
+            "LiveRamp", "DoubleVerify", "AT Internet", "Pornhub", "Salesforce", "dotmetrics.net", "brandmetrics.com", "GitHub, Inc.", "Klaviyo",
+            "HubSpot", "LiveIntent", "LiveInternet", "Segment", "ShareThis, Inc.", "Media.net", "Wingify", "iubenda", "Zendesk", "xhamster",
+            "Snap Technologies", "Sharethrough, Inc", "Comcast", "Braze", "Alibaba", "Trustpilot", "Fastly", "Lotame", "Spot.IM Ltd.", "Baidu"
         ];
 
         const blockList = document.getElementById('blockList');
@@ -36,7 +36,7 @@
             const li = document.createElement('li');
             const a = document.createElement('a');
             a.href = `https://yookibooki.github.io/pages/blocklist/TopCompanies/${encodeURIComponent(company)}.txt`;
-            a.textContent = `block ${company}`;
+            a.textContent = company;
             li.appendChild(a);
             blockList.appendChild(li);
         });
