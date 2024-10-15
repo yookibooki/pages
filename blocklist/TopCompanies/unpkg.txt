@@ -1,0 +1,2 @@
+npmcdn.com
+unpkg.com
