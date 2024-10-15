@@ -1,4 +1,0 @@
-fastly-insights.com
-fastly.com
-fastly.net
-fastlylabs.com

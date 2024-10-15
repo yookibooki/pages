@@ -1,9 +1,0 @@
-besafe.global
-doubleverify.com
-meetrics.com
-meetrics.de
-meetrics.net
-mxcdn.net
-openslate.com
-openslatedata.com
-research.de.com

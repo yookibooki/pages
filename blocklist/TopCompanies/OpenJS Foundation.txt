@@ -1,6 +1,0 @@
-eslint.org
-jquery.com
-jquery.org
-js.foundation
-nodejs.org
-openjsf.org

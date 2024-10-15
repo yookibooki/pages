@@ -1,5 +1,0 @@
-abcrender.com
-getsentry.com
-ravenjs.com
-sentry-cdn.com
-sentry.io
