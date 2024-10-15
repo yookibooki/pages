@@ -3,9 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Page</title>
+    <title>Index Page</title>
+    <script>
+        // Get the current URL
+        const currentUrl = window.location.href;
+        // Display the current URL in the page
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('location').innerText = currentUrl;
+        });
+    </script>
 </head>
 <body>
-    <h1>this is githubcom/pages/layer1subdir/layer2subdir/index.html</h1>
+    <h1>This is:</h1>
+    <p id="location"></p>
 </body>
 </html>
