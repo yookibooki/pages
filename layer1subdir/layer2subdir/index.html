@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Index Page</title>
     <script>
-        // Get the current URL
-        const currentUrl = window.location.href;
-        // Display the current URL in the page
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('location').innerText = currentUrl;
+            // Construct the GitHub raw URL for the index.html file
+            const baseUrl = "https://github.com/yookibooki/pages"; // Change to your repository URL
+            const path = window.location.pathname; // Get the path of the current page
+            const locationUrl = `${baseUrl}${path}`; // Combine base URL and path
+            document.getElementById('location').innerText = locationUrl; // Display the URL
         });
     </script>
 </head>
