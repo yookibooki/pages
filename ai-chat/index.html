@@ -17,10 +17,10 @@
         }
         .container {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 20px;
-            width: 80%;
-            max-width: 1000px;
+            grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+            gap: 15px;
+            width: 90%;
+            max-width: 600px;
             justify-content: center;
             align-items: center;
         }
@@ -28,19 +28,35 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             background-color: #333;
             border-radius: 8px;
             text-decoration: none;
         }
         .button img {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             margin: auto;
         }
         .button:hover {
             background-color: #444;
+        }
+
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 20px;
+                max-width: 1000px;
+            }
+            .button {
+                width: 100px;
+                height: 100px;
+            }
+            .button img {
+                width: 50px;
+                height: 50px;
+            }
         }
     </style>
 </head>
