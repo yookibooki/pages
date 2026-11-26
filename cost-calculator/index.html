@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Agent cost</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23141414'/%3E%3Ctext x='16' y='23' font-size='20' font-family='system-ui' font-weight='700' text-anchor='middle' fill='%23fcfcfa'%3E%24%3C/text%3E%3C/svg%3E">
+<style>
+:root{color-scheme:dark;--bg:#121212;--card:#1c1c1c;--tx:#f0f0ee;--mut:#a5a5a0;--ln:#333331;--hl:#262626;--warn:#e0a458;--s1:#f0f0ee;--s2:#c2c2bc;--s3:#8a8a85}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100dvh;display:flex;flex-direction:column}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--tx);outline-offset:2px}
+#app{flex:1;min-height:0;width:min(680px,100%);margin:0 auto;display:flex;flex-direction:column;justify-content:center;padding:24px;gap:22px}
+.big{font-size:clamp(64px,11vh,120px);font-weight:750;letter-spacing:-.04em;line-height:1;font-variant-numeric:tabular-nums}
+#stats{font-size:15.5px;color:var(--mut);margin:14px 0 0}
+#stats.empty{font-size:clamp(18px,2.4vh,22px);color:var(--tx);text-align:center;margin:26px 0 0}
+#stats.empty b{font-weight:600}
+#stats b{color:var(--tx);font-weight:650;font-variant-numeric:tabular-nums}
+.meter{display:inline-block;width:90px;height:6px;border-radius:3px;background:var(--ln);overflow:hidden;vertical-align:middle;margin:0 6px 2px}
+.meter i{display:block;height:100%;background:var(--tx);border-radius:3px}
+.meter i.warn{background:var(--warn)}
+.bar{display:flex;height:44px;gap:3px;border-radius:10px;overflow:hidden}
+.bar i{position:relative;min-width:3px;container-type:inline-size}
+.bar b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14.5px;font-weight:650;white-space:nowrap;overflow:hidden;color:#141414}
+@container (max-width:43px){.bar b{display:none}}
+#legend{display:flex;flex-wrap:wrap;gap:4px 20px;margin:-8px 0 0;font-size:13.5px;color:var(--mut)}
+#legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:7px}
+#legend b{color:var(--tx);font-weight:650;font-variant-numeric:tabular-nums}
+.s1{background:var(--s1)}.s2{background:var(--s2)}.s3{background:var(--s3)}
+.card{position:relative;border:1.5px solid var(--ln);border-radius:14px;padding:10px 14px 12px;background:var(--card);cursor:text}
+.card:focus-within{border-color:var(--tx)}
+.card span{display:block;font-size:14px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card input{width:100%;padding:0;border:0;background:none;outline:none;font-size:17px;font-weight:600;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card::after{content:"▾";position:absolute;right:14px;bottom:11px;color:var(--mut)}
+#mlist{position:absolute;top:calc(100% + 6px);left:-1.5px;right:-1.5px;z-index:9;margin:0;padding:6px 0;list-style:none;background:var(--bg);border:1.5px solid var(--ln);border-radius:14px;max-height:320px;overflow:auto;box-shadow:0 12px 36px rgba(0,0,0,.2)}
+#mlist li{padding:9px 16px;font-size:15.5px;color:var(--mut);display:flex;justify-content:space-between;gap:12px;cursor:pointer}
+#mlist li:hover,#mlist li[aria-selected=true]{background:var(--hl);color:var(--tx)}
+.grp{margin:-10px 0 -16px;font-size:12px;font-weight:650;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
+.srow{display:grid;grid-template-columns:1fr auto;align-items:center;gap:16px}
+.srow input[type=range]{width:100%;accent-color:var(--tx);height:28px;margin:0;cursor:pointer}
+.srow b{font-size:15px;font-weight:650;font-variant-numeric:tabular-nums;min-width:118px;text-align:right;white-space:nowrap}
+#period{display:flex;gap:8px;justify-content:center;margin-top:14px}
+#period button{border:1.5px solid var(--ln);background:none;border-radius:99px;padding:2px 14px;font-size:14px;color:var(--mut);cursor:pointer}
+#period button:hover{border-color:var(--mut)}
+#period button[aria-pressed=true]{border-color:var(--tx);color:var(--tx)}
+.mini{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.mini label{display:block;min-width:0}
+.mini span{display:block;font-size:12.5px;color:var(--mut);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mini input{width:100%;border:0;border-bottom:1.5px solid var(--ln);border-radius:0;background:none;padding:2px 0 5px;font-size:15.5px;font-weight:600;font-variant-numeric:tabular-nums;outline:none}
+.mini input:focus{border-color:var(--tx)}
+.mini input[aria-invalid=true]{border-color:var(--warn)}
+@media(max-width:560px){.mini{grid-template-columns:repeat(auto-fit,minmax(110px,1fr))}}
+#err{display:none;margin:0;font-size:15px;color:var(--warn)}
+.lk{background:none;border:0;padding:0;color:var(--warn);cursor:pointer;font-size:15px;text-decoration:underline}
+.back{position:fixed;top:10px;left:14px;z-index:10;color:var(--mut);font:14px/1.4 system-ui,sans-serif;text-decoration:none}
+.back:hover{color:var(--tx)}
+</style>
+</head>
+
+<body>
+
+<a class="back" href="../chatbots/" aria-label="Back to chatbots">← Chatbots</a>
+
+<main id="app">
+  <section aria-live="polite">
+    <div class="big"><span id="total">—</span></div>
+    <div id="period" role="group" aria-label="cost period">
+      <button type="button" data-per="1" aria-pressed="false">per day</button>
+      <button type="button" data-per="7" aria-pressed="false">per week</button>
+      <button type="button" data-per="30" aria-pressed="true">per month</button>
+    </div>
+    <p id="stats"></p>
+  </section>
+
+  <div id="bar" class="bar" role="img" aria-label="cost breakdown"></div>
+  <p id="legend"></p>
+
+  <label class="srow"><input id="sizeR" type="range" min="0" max="59" value="29" aria-label="steps per task"><b id="sizeV"></b></label>
+  <label class="srow"><input id="dayR" type="range" min="0" max="59" value="29" aria-label="tasks per day"><b id="dayV"></b></label>
+
+  <label class="card"><span>model</span>
+    <input id="msearch" type="text" role="combobox" aria-label="model" aria-expanded="false" aria-controls="mlist" aria-autocomplete="list" autocomplete="off" placeholder="pick a model…  ( / )">
+    <ul id="mlist" role="listbox" aria-label="models" hidden></ul></label>
+
+  <div class="mini" id="custom">
+    <label><span>in $/M</span><input id="cin" type="text" inputmode="decimal" autocomplete="off" aria-label="input price per million tokens"></label>
+    <label><span>out $/M</span><input id="cout" type="text" inputmode="decimal" autocomplete="off" aria-label="output price per million tokens"></label>
+    <label><span>cache read $/M</span><input id="ccr" type="text" inputmode="decimal" autocomplete="off" aria-label="cache read price per million tokens"></label>
+    <label><span>cache write $/M</span><input id="ccw" type="text" inputmode="decimal" autocomplete="off" aria-label="cache write price per million tokens"></label>
+  </div>
+
+  <p class="grp" id="l-context">context</p>
+  <div class="mini" aria-labelledby="l-context">
+    <label title="Tokens in play before step 1: system prompt, tool & MCP schemas, memory files like CLAUDE.md, skill descriptions. Measured coding sessions median ~60k before the first message."><span>baseline ctx</span><input id="start" type="text" value="10k" inputmode="decimal"></label>
+    <label title="Tokens of tool / command output fed back into the model each step."><span>tool result / step</span><input id="tool" type="text" value="2k" inputmode="decimal"></label>
+    <label title="Tokens the model writes each step (visible output only)."><span>output / step</span><input id="out" type="text" value="400" inputmode="decimal"></label>
+    <label title="Reasoning tokens per step. Billed at the output rate, which is often 5–20× the cache-read rate."><span>thinking / step</span><input id="think" type="text" value="250" inputmode="decimal"></label>
+    <label title="Share of the re-sent prefix served from the prompt cache at the discounted read rate."><span>cache hit %</span><input id="hit" type="text" value="95" inputmode="decimal"></label>
+  </div>
+
+  <p class="grp" id="l-loop">loop reality</p>
+  <div class="mini" aria-labelledby="l-loop">
+    <label title="Times per task the prompt cache is fully lost — idle longer than the TTL (5 min on Anthropic, 30 min on recent OpenAI), a long build, a human-approval pause, or an MCP reconnect. The next step re-pays the whole accumulated prefix."><span>cache drops / task</span><input id="cold" type="text" value="0" inputmode="decimal"></label>
+    <label title="Share of steps that fail and run again. A retry re-sends the entire accumulated context and generates the output a second time."><span>retry %</span><input id="retry" type="text" value="0" inputmode="decimal"></label>
+    <label title="Auto-compact threshold in tokens. When the task's context grows past this, the transcript is dropped and only the baseline context is kept — like coding agents that auto-compact near their context window (200k default). 0 = never."><span>compact @ ctx</span><input id="compact" type="text" value="200k" inputmode="decimal"></label>
+    <label title="Extra agent loops per task, each with its own context and its own cache (e.g. Explore or Plan subagents). Real telemetry puts ~⅓ of agent token spend in subagents."><span>subagents / task</span><input id="subs" type="text" value="0" inputmode="decimal"></label>
+  </div>
+
+  <p id="err">couldn’t load models.dev — <button id="retrybtn" type="button" class="lk">retry</button></p>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id), M = 1e6;
+
+const DAY_MAX = 500;
+const TICKS = [];
+for (let v = 1; v <= 30; v++) TICKS.push(v);
+for (let v = 35; v <= 100; v += 5) TICKS.push(v);
+for (let v = 125; v <= 500; v += 25) TICKS.push(v);
+const idxOf = v => {
+  let best = 0, bd = Infinity;
+  for (let i = 0; i < TICKS.length; i++) { const d = Math.abs(TICKS[i] - v); if (d < bd) { bd = d; best = i; } }
+  return best;
+};
+let day = 30, steps = 30, per = 30;
+const PER_SUF = { 1: "/day", 7: "/wk", 30: "/mo" };
+const setDay = v => {
+  day = Math.min(DAY_MAX, Math.max(1, Math.round(v)));
+  const r = $("dayR");
+  if (r) r.value = idxOf(day);
+};
+
+const tierFor = (p, prompt) => p.tier && prompt > p.tierAt ? p.tier : p;
+
+const coldSet = (steps, cold) => {
+  const s = new Set();
+  for (let k = 1; k <= cold; k++) {
+    const i = Math.round(k * (steps + 1) / (cold + 1));
+    if (i > 1 && i <= steps) s.add(i);
+  }
+  return s;
+};
+
+function simulate(w, p) {
+  const acc = { cached: 0, fresh: 0, out: 0 };
+  const gen = w.out + w.think;
+  const rMult = 1 + w.retry;
+  const fan = 1 + w.subs;
+  let prev = 0, carry = 0, peak = 0;
+  for (let i = 1; i <= w.steps; i++) {
+    if (i > 1 && w.compact > 0 && prev + carry + w.tool > w.compact) { prev = w.start; carry = 0; }
+    const prompt = i === 1 ? w.start : prev + carry + w.tool;
+    const R = i === 1 ? 0 : prev, F = prompt - R, q = tierFor(p, prompt);
+    const hit = w.coldMarks.has(i) ? 0 : w.hit;
+    acc.cached += rMult * R * hit * q.cr;
+    acc.fresh += rMult * (R * (1 - hit) * q.cw + F * q.cw);
+    acc.out += rMult * gen * q.out;
+    carry = w.out;
+    prev = prompt; if (prompt + gen > peak) peak = prompt + gen;
+  }
+  const k = 1 / M;
+  return { run: (acc.cached + acc.fresh + acc.out) * k * fan,
+    parts: { cached: acc.cached * k * fan, fresh: acc.fresh * k * fan, out: acc.out * k * fan }, peak };
+}
+
+const DEF = { start: 10000, tool: 2000, out: 400, think: 250, hit: 0.95, cold: 0, retry: 0, compact: 200000, subs: 0 };
+const CID = ["cin", "cout", "ccr", "ccw"];
+const IDS = ["start", "tool", "out", "think", "hit", "cold", "retry", "compact", "subs"];
+const FKEYS = ["in", "out", "cr", "cw"];
+const fieldP = () => {
+  const o = {};
+  CID.forEach((id, i) => {
+    const n = parse($(id).value), d = cur?.p[FKEYS[i]], raw = $(id).value.trim();
+    const good = isFinite(n) && n >= 0;
+    o[FKEYS[i]] = good ? n : (d ?? 0);
+    $(id).setAttribute("aria-invalid", String(!good && raw !== ""));
+  });
+  return o;
+};
+const hasPrices = () => !!cur || CID.some(id => isFinite(parse($(id).value)));
+const fmtP = n => String(+n.toPrecision(4));
+
+function parse(s) {
+  const m = String(s).trim().toLowerCase().replace(/[,\s_$%]/g, "").match(/^(\d*\.?\d+)([kmb])?$/);
+  return m ? m[1] * ({ k: 1e3, m: 1e6, b: 1e9 }[m[2]] ?? 1) : NaN;
+}
+function money(n) {
+  if (!isFinite(n)) return "—";
+  if (n < 0.0001) return "<$0.0001";
+  if (n >= 1000) return "$" + Math.round(n).toLocaleString("en-US");
+  if (n >= 1) return "$" + n.toFixed(2);
+  return "$" + Number(n.toPrecision(3));
+}
+const tok = n => !isFinite(n) ? "—" : n >= 1e6 ? +(n / 1e6).toFixed(2) + "M" : n >= 1e3 ? +(n / 1e3).toFixed(n >= 1e5 ? 0 : 1) + "k" : String(Math.round(n));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+const KEY = "agentcost:models:v5", TTL = 24 * 3600e3;
+function extract(data) {
+  const groups = new Map();
+  for (const [pid, prov] of Object.entries(data ?? {}))
+    for (const [mid, m] of Object.entries(prov?.models ?? {})) {
+      const c = m?.cost, ctx = m?.limit?.context;
+      if (!m?.name || !(c?.input > 0) || !(c?.output > 0) || !(ctx > 0)) continue;
+      const t = c.context_over_200k, key = pid + "/" + mid, canon = m.canonical_model_id || key,
+        first = !!m.canonical_model_id && canon.startsWith(pid + "/");
+      const e = { key, name: m.name, lab: pid, first, ctx,
+        p: { in: c.input, out: c.output, cr: c.cache_read ?? c.input, cw: c.cache_write ?? c.input, tierAt: 200000,
+          tier: t?.input > 0 && t?.output > 0 ? { in: t.input, out: t.output, cr: t.cache_read ?? t.input, cw: t.cache_write ?? t.input } : null } };
+      if (!groups.has(canon)) groups.set(canon, []);
+      groups.get(canon).push(e);
+    }
+  const list = [...groups.values()].map(es => es.sort((a, b) => (b.first - a.first))[0]);
+  return list.sort((a, b) => a.name.localeCompare(b.name));
+}
+function readStale() {
+  try { const c = JSON.parse(localStorage.getItem(KEY)); return c?.list ? c : null; } catch { return null; }
+}
+async function fetchFresh() {
+  const r = await fetch("https://models.dev/api.json",
+    { signal: AbortSignal.timeout ? AbortSignal.timeout(60000) : undefined });
+  if (!r.ok) throw new Error(r.status);
+  const list = extract(await r.json());
+  if (!list.length) throw new Error("empty");
+  try { localStorage.setItem(KEY, JSON.stringify({ at: Date.now(), list })); } catch {}
+  return list;
+}
+
+function applyList(list) {
+  MODELS = list;
+  byKey = new Map(MODELS.map(m => [m.key, m]));
+  if (!ml.hidden) openList(ms.value);
+  if (cur) {
+    cur = byKey.get(cur.key) ?? null;
+    if (!cur) ms.value = hasPrices() ? "custom model" : "";
+  } else if (pendingModel && byKey.has(pendingModel)) {
+    cur = byKey.get(pendingModel);
+    pendingModel = null;
+    CID.forEach((id, i) => $(id).value = fmtP([cur.p.in, cur.p.out, cur.p.cr, cur.p.cw][i]));
+    ms.value = label(cur);
+  }
+  render();
+}
+
+const MS_PH = "pick a model…  ( / )";
+function setLoadingUI(on) {
+  ms.placeholder = on ? "loading models…" : MS_PH;
+}
+
+const BKEY = "agentcost:backoff:v1";
+const readBackoff = () => {
+  try { const b = JSON.parse(localStorage.getItem(BKEY)); return b?.at && typeof b.n === "number" ? b : null; } catch { return null; }
+};
+const backoffDelay = n => Math.min(60e3 * Math.pow(4, Math.max(n - 1, 0)), 24 * 3600e3);
+const noteFail = () => {
+  try { localStorage.setItem(BKEY, JSON.stringify({ at: Date.now(), n: (readBackoff()?.n ?? 0) + 1 })); } catch {}
+};
+const noteOk = () => { try { localStorage.removeItem(BKEY); } catch {} };
+
+async function loadModels(force) {
+  $("err").style.display = "none";
+  const stale = readStale();
+  if (stale?.list?.length) applyList(stale.list);
+  if (!force) {
+    if (stale?.list?.length && Date.now() - stale.at <= TTL) return;
+    const b = readBackoff();
+    if (MODELS.length && (navigator.onLine === false ||
+        (b && Date.now() - b.at < backoffDelay(b.n)))) return;
+  }
+  if (!MODELS.length) setLoadingUI(true);
+  try {
+    const list = await fetchFresh();
+    noteOk();
+    applyList(list);
+  } catch {
+    noteFail();
+    if (!MODELS.length || force) $("err").style.display = "block";
+  }
+  setLoadingUI(false);
+}
+
+let MODELS = [], byKey = new Map(), cur = null, pendingModel = null;
+const label = m => m.name + " · " + m.lab;
+
+const SKEY = "agentcost:state:v1";
+function loadState() {
+  let s;
+  try { s = JSON.parse(localStorage.getItem(SKEY)); } catch { return; }
+  if (!s) return;
+  if (isFinite(parse(s.steps)) && s.steps >= 1) steps = Math.min(500, Math.max(1, Math.round(parse(s.steps))));
+  if (isFinite(parse(s.day)) && s.day > 0) setDay(s.day);
+  if (s.per === 1 || s.per === 7 || s.per === 30) per = s.per;
+  for (const id of IDS) if (typeof s.fields?.[id] === "string") $(id).value = s.fields[id];
+  CID.forEach(id => { if (typeof s.cid?.[id] === "string") $(id).value = s.cid[id]; });
+  pendingModel = typeof s.model === "string" ? s.model : null;
+  if (!pendingModel && CID.some(id => $(id).value.trim())) ms.value = "custom model";
+}
+function saveState() {
+  const s = { steps, day, per, fields: {}, cid: {}, model: cur?.key ?? null };
+  for (const id of IDS) s.fields[id] = $(id).value;
+  CID.forEach(id => { if ($(id).value.trim()) s.cid[id] = $(id).value; });
+  try { localStorage.setItem(SKEY, JSON.stringify(s)); } catch {}
+}
+
+const PARTS = [["cached", "cache reads"], ["fresh", "fresh input"], ["out", "output"]];
+
+function render() {
+  const num = (id, fb) => {
+    const v = parse($(id).value);
+    const pctField = id === "hit" || id === "retry";
+    const good = isFinite(v) && v >= 0 && (!pctField || v <= 100);
+    $(id).setAttribute("aria-invalid", String(!good));
+    return good ? v : fb;
+  };
+  const w = {
+    steps,
+    start: num("start", DEF.start), tool: num("tool", DEF.tool),
+    out: num("out", DEF.out), think: num("think", DEF.think),
+    hit: num("hit", DEF.hit * 100) / 100,
+    cold: Math.round(num("cold", DEF.cold)),
+    retry: num("retry", DEF.retry * 100) / 100,
+    compact: Math.round(num("compact", DEF.compact)),
+    subs: num("subs", DEF.subs)
+  };
+  w.coldMarks = coldSet(w.steps, w.cold);
+  const runs = day * per;
+  const priced = hasPrices();
+  const p = { ...fieldP(), tier: cur?.p.tier ?? null, tierAt: cur?.p.tierAt ?? Infinity };
+  const r = simulate(w, p);
+  $("total").textContent = priced ? money(r.run * runs) : "—";
+  for (const b of $("period").querySelectorAll("button")) b.setAttribute("aria-pressed", String(+b.dataset.per === per));
+  $("sizeV").textContent = w.steps + " steps / task";
+  $("dayV").textContent = day.toLocaleString("en-US") + " tasks / day";
+  $("dayR").setAttribute("aria-valuetext", day + " tasks per day");
+  const lim = cur?.ctx, pct = lim ? Math.min(100, r.peak / lim * 100) : 0;
+  const extras = [];
+  if (w.subs > 0) extras.push(w.subs + " subagent" + (w.subs === 1 ? "" : "s") + " / task");
+  if (w.compact > 0) extras.push("compact @ " + tok(w.compact));
+  if (!priced) {
+    $("stats").className = "empty";
+    $("stats").innerHTML = "pick a model or type $/M prices";
+  } else {
+    $("stats").className = "";
+    $("stats").innerHTML = `<b>${money(r.run)}</b> per task · peak context <b>${tok(r.peak)}</b>` +
+      (lim ? `<span class="meter" role="img" aria-label="peak context ${Math.round(pct)}% of ${tok(lim)} window"><i class="${pct > 80 ? "warn" : ""}" style="width:${pct.toFixed(1)}%"></i></span>${Math.round(pct)}% of ${tok(lim)}` : "") +
+      (extras.length ? " · " + extras.join(" · ") : "");
+  }
+  const total = r.run || 1;
+  const shown = PARTS.filter(([k]) => r.parts[k] > 0);
+  $("bar").innerHTML = shown.map(([k], j) =>
+    `<i class="s${j + 1}" style="width:${(r.parts[k] / total * 100).toFixed(2)}%"><b>${Math.round(r.parts[k] / total * 100)}%</b></i>`).join("");
+  $("bar").setAttribute("aria-label", shown.length
+    ? "cost breakdown: " + shown.map(([k, l], j) => l + " " + Math.round(r.parts[k] / total * 100) + "%").join(", ")
+    : "cost breakdown (empty)");
+  $("legend").innerHTML = shown.map(([k, l], j) =>
+    `<span><i class="s${j + 1}"></i>${l} <b>${money(r.parts[k] * runs)}</b>${PER_SUF[per]}</span>`).join("");
+}
+
+const ms = $("msearch"), ml = $("mlist");
+let hits = [], active = -1, q = "";
+
+function renderList() {
+  ml.innerHTML = hits.map((m, i) => `<li role="option" id="opt${i}" data-i="${i}" aria-selected="${i === active}">${esc(m.name)}<span>${esc(m.lab)}</span></li>`).join("") ||
+    (q ? `<li>no matches</li>` : "");
+  ml.hidden = !ml.children.length;
+  ms.setAttribute("aria-expanded", String(!ml.hidden));
+  if (active >= 0 ? ml.children[active] : false)
+    ms.setAttribute("aria-activedescendant", "opt" + active);
+  else ms.removeAttribute("aria-activedescendant");
+}
+function openList(text) {
+  q = text.trim();
+  const s = q.toLowerCase();
+  hits = s ? MODELS.filter(m => { const h = (m.name + " " + m.lab + " " + m.key).toLowerCase(); return s.split(/\s+/).every(w => h.includes(w)); })
+    .sort((a, b) => (b.first ? 1 : 0) - (a.first ? 1 : 0) || a.name.localeCompare(b.name)) : [];
+  active = hits.length ? 0 : -1;
+  renderList();
+}
+function select(m) {
+  cur = byKey.get(m.key) ?? m;
+  CID.forEach((id, i) => $(id).value = fmtP([m.p.in, m.p.out, m.p.cr, m.p.cw][i]));
+  ms.value = label(m);
+  openList("");
+  saveState();
+  render();
+}
+ms.addEventListener("input", () => {
+  if (!ms.value.trim() && cur) { cur = null; saveState(); render(); }
+  openList(ms.value);
+});
+ms.addEventListener("focus", () => ms.select());
+ms.addEventListener("blur", () => { openList(""); if (cur) ms.value = label(cur); });
+ms.addEventListener("keydown", e => {
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    if (!hits.length) return;
+    e.preventDefault();
+    active = (active + (e.key === "ArrowDown" ? 1 : -1) + hits.length) % hits.length;
+    renderList();
+    ml.children[active]?.scrollIntoView({ block: "nearest" });
+  } else if (e.key === "Enter" && hits[active]) { e.preventDefault(); select(hits[active]); }
+});
+ml.addEventListener("mousedown", e => {
+  const li = e.target.closest("li");
+  if (!li) return;
+  e.preventDefault();
+  if (li.dataset.i != null) select(hits[+li.dataset.i]);
+});
+
+const rerender = () => { saveState(); render(); };
+$("sizeR").addEventListener("input", () => { steps = TICKS[+$("sizeR").value]; rerender(); });
+$("dayR").addEventListener("input", () => { day = TICKS[+$("dayR").value]; rerender(); });
+for (const id of IDS) $(id).addEventListener("input", rerender);
+const priceEdit = () => {
+  if (cur) {
+    const def = [cur.p.in, cur.p.out, cur.p.cr, cur.p.cw];
+    if (CID.some((id, i) => { const n = parse($(id).value); return isFinite(n) && n >= 0 && n !== def[i]; })) cur = null;
+  }
+  if (!cur && ms.value !== "custom model") ms.value = "custom model";
+  rerender();
+};
+CID.forEach(id => $(id).addEventListener("input", priceEdit));
+$("period").addEventListener("click", e => {
+  const b = e.target.closest("button[data-per]");
+  if (!b || +b.dataset.per === per) return;
+  per = +b.dataset.per;
+  rerender();
+});
+$("retrybtn").addEventListener("click", () => { $("err").style.display = "none"; loadModels(true); });
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") openList("");
+  const a = document.activeElement;
+  if (e.key === "/" && !(a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.isContentEditable)) { e.preventDefault(); ms.focus(); }
+});
+
+loadState();
+$("sizeR").value = idxOf(steps);
+$("dayR").value = idxOf(day);
+render();
+loadModels();
+</script>
+</body>
+</html>

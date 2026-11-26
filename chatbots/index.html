@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="dark">
+<title>Chatbots</title>
+<style>
+    :root {
+        --bg: #121212;
+        --card: #1e1e1e;
+        --chip: rgba(255, 255, 255, 0.1);
+        --text: #ffffff;
+        --radius: 16px;
+        --gap: clamp(8px, 1.2vw, 16px);
+        --pad: clamp(8px, 1.2vw, 16px);
+        --blur: blur(8px);
+    }
+
+    * {
+        box-sizing: border-box
+    }
+
+    body {
+        margin: 0;
+        height: 100dvh;
+        background: var(--bg);
+        overflow: hidden;
+        padding: var(--pad)
+    }
+
+    #grid {
+        display: grid;
+        gap: var(--gap);
+        width: 100%;
+        height: 100%;
+        place-content: center
+    }
+
+    a {
+        position: relative;
+        text-decoration: none;
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        background: var(--card);
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 8%;
+        overflow: hidden;
+    }
+
+    img {
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        object-fit: contain;
+        z-index: 1;
+    }
+
+    .hide {
+        display: none !important
+    }
+
+    a::before,
+    a::after {
+        position: absolute;
+        background: var(--chip);
+        backdrop-filter: var(--blur);
+        color: var(--text);
+        padding: 6px 10px;
+        font: 600 clamp(10px, 1.8vmin, 14px)/1 system-ui, sans-serif;
+        z-index: 2;
+    }
+
+    a::before {
+        content: attr(data-score);
+        top: 0;
+        left: 0;
+        border-top-left-radius: var(--radius);
+        border-bottom-right-radius: 8px;
+    }
+
+    a::after {
+        content: attr(data-model);
+        bottom: 0;
+        right: 0;
+        border-bottom-right-radius: var(--radius);
+        border-top-left-radius: 8px;
+    }
+
+    .tool::before {
+        content: "TOOL";
+    }
+</style>
+
+<body>
+<div id="grid">
+<a href="https://chat.qwen.ai" data-score="43" data-model="Qwen4 Max"><img alt="Qwen4 Max logo" src="icons/qwen.svg"></a>
+<a id="claude" class="hide" href="https://claude.ai/new" data-score="42" data-model="Sonnet 5.5"><img alt="Sonnet 5.5 logo" src="icons/claude.svg"></a>
+<a href="https://www.meta.ai" data-score="37" data-model="Muse Spark 1.3"><img alt="Muse Spark 1.3 logo" src="icons/meta.svg"></a>
+<a href="https://aistudio.tencent.ai" data-score="35" data-model="Hy4"><img alt="Hy4 logo" src="icons/tencent.svg"></a>
+<a href="https://chat.mistral.ai" data-score="32" data-model="GLM-5.3"><img alt="GLM-5.3 logo" src="icons/mistral.svg"></a>
+<a href="https://chat.z.ai" data-score="32" data-model="GLM-5.3"><img alt="GLM-5.3 logo" src="icons/zai.svg"></a>
+<a href="https://chat.together.ai" data-score="32" data-model="GLM-5.3"><img alt="GLM-5.3 logo" src="icons/together.svg"></a>
+<a href="https://chat.ant-ling.com/chat" data-score="31" data-model="Ling-3.2-flash"><img alt="Ling-3.2-flash logo" src="icons/ling.svg"></a>
+<a href="https://chat.deepseek.com" data-score="29" data-model="DeepSeek V4.1"><img alt="DeepSeek V4.1 logo" src="icons/deepseek.svg"></a>
+<a href="https://agent.minimax.io" data-score="29" data-model="M3.1 Flash"><img alt="M3.1 Flash logo" src="icons/minimax.svg"></a>
+<a href="https://chat.stepfun.com/chats/new" data-score="29" data-model="Step 5 Preview"><img alt="Step 5 Preview logo" src="icons/stepfun.svg"></a>
+<a href="https://longcat.ai/chat/" data-score="28" data-model="LongCat-2.5"><img alt="LongCat-2.5 logo" src="icons/longcat.svg"></a>
+<a href="https://chatgpt.com" data-score="21" data-model="GPT-6 Luna"><img alt="GPT-6 Luna logo" src="icons/openai.svg"></a>
+<a class="tool" href="../cost-calculator/" data-score="-1" data-model="Cost calc"><img alt="Cost calculator logo" src="icons/calculator.svg"></a>
+</div>
+<noscript><style>.hide { display: flex !important }</style></noscript>
+<script>
+    'use strict';
+
+    const PEAK_DAYS = [1, 2, 3, 4, 5];
+    const PEAK_FROM = 5;
+    const PEAK_TO = 11;
+    const LOOKAHEAD_DAYS = 4;
+    const EDGE_DELAY_MS = 250;
+    const PT = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles',
+        year: 'numeric', month: 'numeric', day: 'numeric',
+        hour: 'numeric', minute: 'numeric', hourCycle: 'h23'
+    });
+    const SIZE_EPSILON = 0.01;
+
+    const grid = document.getElementById('grid');
+    const claude = document.getElementById('claude');
+    const px = value => Number.parseFloat(value) || 0;
+
+    let rendered = '';
+    const fit = () => {
+        const visible = grid.querySelectorAll('a:not(.hide)').length;
+        const gap = px(getComputedStyle(grid).gap);
+        const width = grid.clientWidth;
+        const height = grid.clientHeight;
+
+        let cols = 1, best = 0;
+        for (let c = 1; c <= visible; c++) {
+            const rows = Math.ceil(visible / c);
+            const size = Math.min(
+                (width - gap * (c - 1)) / c,
+                (height - gap * (rows - 1)) / rows
+            );
+            if (size > best || (Math.abs(size - best) < SIZE_EPSILON && c > cols)) {
+                cols = c;
+                best = size;
+            }
+        }
+
+        const size = Math.max(1, Math.floor(best));
+        const key = `${cols}x${size}`;
+        if (key === rendered) return;
+        rendered = key;
+        grid.style.gridTemplateColumns = `repeat(${cols}, ${size}px)`;
+        grid.style.gridAutoRows = `${size}px`;
+    };
+
+    const sortCards = () => {
+        const cards = [...grid.querySelectorAll('a[data-score]')];
+        const sorted = [...cards].sort((a, b) => (+b.dataset.score || 0) - (+a.dataset.score || 0));
+        for (let i = 0; i < cards.length; i++) {
+            if (cards[i] !== sorted[i]) {
+                for (const card of sorted) grid.append(card);
+                return;
+            }
+        }
+    };
+
+    const local = date => {
+        const part = {};
+        for (const { type, value } of PT.formatToParts(date)) part[type] = +value;
+        const midnight = Date.UTC(part.year, part.month - 1, part.day);
+        return { midnight, day: new Date(midnight).getUTCDay(), clock: midnight + (part.hour * 60 + part.minute) * 60000 };
+    };
+
+    const offsetAt = date => Math.round((local(date).clock - date.getTime()) / 60000) * 60000;
+
+    const isPeak = (now = new Date()) => {
+        const { midnight, day, clock } = local(now);
+        const hour = (clock - midnight) / 3600000;
+        return PEAK_DAYS.includes(day) && hour >= PEAK_FROM && hour < PEAK_TO;
+    };
+
+    const edgeAt = (midnight, hour) => {
+        const naive = midnight + hour * 3600000;
+        const once = naive - offsetAt(new Date(naive));
+        return naive - offsetAt(new Date(once));
+    };
+
+    const nextEdge = (now = new Date()) => {
+        const { midnight } = local(now);
+        for (let i = 0; i < LOOKAHEAD_DAYS; i++) {
+            const day = midnight + i * 86400000;
+            if (!PEAK_DAYS.includes(new Date(day).getUTCDay())) continue;
+            for (const hour of [PEAK_FROM, PEAK_TO]) {
+                const at = edgeAt(day, hour);
+                if (at > now.getTime()) return at;
+            }
+        }
+        return null;
+    };
+
+    let peak = null;
+    const applyState = (now = new Date()) => {
+        const hidden = isPeak(now);
+        if (hidden === peak) return;
+        peak = hidden;
+        claude?.classList.toggle('hide', hidden);
+        fit();
+    };
+
+    let timer = null;
+    const refresh = () => {
+        clearTimeout(timer);
+        applyState();
+        const edge = nextEdge();
+        if (edge == null) return;
+        timer = setTimeout(refresh, edge - Date.now() + EDGE_DELAY_MS);
+    };
+
+    sortCards();
+    refresh();
+
+    const wake = () => { if (!document.hidden) refresh(); };
+    document.addEventListener('visibilitychange', wake);
+    window.addEventListener('pageshow', wake);
+
+    new ResizeObserver(fit).observe(grid);
+    new MutationObserver(() => { sortCards(); fit(); })
+        .observe(grid, { childList: true, subtree: true });
+</script>
